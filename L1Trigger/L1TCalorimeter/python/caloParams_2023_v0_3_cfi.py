@@ -37,7 +37,7 @@ caloStage2Params = L1Trigger.L1TCalorimeter.caloParams_cfi.caloParams.clone(
     # jets
     jetSeedThreshold           = 4.0,
     jetPUSType                 = "PhiRing1",
-    jetPUSUsePhiRing           = 1,
+    jetPUSUsePhiRing           = 1, 
 
     # Calibration options
     jetCalibrationType         = "LUT",
@@ -54,7 +54,7 @@ caloStage2Params = L1Trigger.L1TCalorimeter.caloParams_cfi.caloParams.clone(
     etSumBypassEttPUS       = 1,
     etSumBypassEcalSumPUS   = 1,
 
-    etSumMetPUSLUTFile      = "L1Trigger/L1TCalorimeter/data/metPumLUT_2023v0_puppiMet_fit.txt",
+    etSumMetPUSLUTFile               = "L1Trigger/L1TCalorimeter/data/metPumLUT_2022_HCALOff_p5.txt",
 
 
     # Layer 1 SF

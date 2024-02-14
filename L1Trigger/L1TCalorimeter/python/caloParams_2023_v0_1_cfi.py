@@ -28,22 +28,21 @@ caloStage2Params = L1Trigger.L1TCalorimeter.caloParams_cfi.caloParams.clone(
     # Tau
     isoTauEtaMax               = 25,
     tauSeedThreshold           = 0.,
-    tauIsoLUTFile              = "L1Trigger/L1TCalorimeter/data/Tau_Iso_LUT_2023_calibThr1p7_V2gs_effMin0p9_eMin16_eMax60.txt",
-    tauIsoLUTFile2             = "L1Trigger/L1TCalorimeter/data/Tau_Iso_LUT_2023_calibThr1p7_V2gs_effMin0p9_eMin16_eMax60.txt",
-    tauCalibrationLUTFile      = "L1Trigger/L1TCalorimeter/data/Tau_Cal_LUT_2023_calibThr1p7_V2.txt",
+    tauIsoLUTFile              = "L1Trigger/L1TCalorimeter/data/Tau_Iso_LUT_2023_calibThr1p7_V1gs_effMin0p9_eMin10_eMax46.txt",
+    tauIsoLUTFile2             = "L1Trigger/L1TCalorimeter/data/Tau_Iso_LUT_2023_calibThr1p7_V1gs_effMin0p9_eMin10_eMax46.txt",
+    tauCalibrationLUTFile      = "L1Trigger/L1TCalorimeter/data/Tau_Cal_LUT_2023_calibThr1p7_V1.txt",
     tauCompressLUTFile         = "L1Trigger/L1TCalorimeter/data/tauCompressAllLUT_12bit_v3.txt",
     tauPUSParams               = [1,4,32],
 
     # jets
     jetSeedThreshold           = 4.0,
-    jetPUSType                 = "PhiRing1",
-    jetPUSUsePhiRing           = 1,
+    jetPUSType                 = "ChunkyDonut",
 
     # Calibration options
     jetCalibrationType         = "LUT",
     jetCompressPtLUTFile       = "L1Trigger/L1TCalorimeter/data/lut_pt_compress_2017v1.txt",
     jetCompressEtaLUTFile      = "L1Trigger/L1TCalorimeter/data/lut_eta_compress_2017v1.txt",
-    jetCalibrationLUTFile      = "L1Trigger/L1TCalorimeter/data/lut_calib_2023v0_ECALZS_PhiRing.txt",
+    jetCalibrationLUTFile      = "L1Trigger/L1TCalorimeter/data/lut_calib_2022v5_ECALZS_noHFJEC.txt",
 
 
     # sums: 0=ET, 1=HT, 2=MET, 3=MHT
@@ -54,7 +53,7 @@ caloStage2Params = L1Trigger.L1TCalorimeter.caloParams_cfi.caloParams.clone(
     etSumBypassEttPUS       = 1,
     etSumBypassEcalSumPUS   = 1,
 
-    etSumMetPUSLUTFile      = "L1Trigger/L1TCalorimeter/data/metPumLUT_2023v0_puppiMet_fit.txt",
+    etSumMetPUSLUTFile               = "L1Trigger/L1TCalorimeter/data/metPumLUT_2022_HCALOff_p5.txt",
 
 
     # Layer 1 SF

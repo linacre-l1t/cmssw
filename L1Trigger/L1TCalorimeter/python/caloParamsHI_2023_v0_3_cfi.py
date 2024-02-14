@@ -5,11 +5,15 @@ import L1Trigger.L1TCalorimeter.caloParams_cfi
 caloStage2Params = L1Trigger.L1TCalorimeter.caloParams_cfi.caloParams.clone(
 
     # EG
+    egEtaCut                   = 24,
     egHcalThreshold            = 0.,
     egTrimmingLUTFile          = "L1Trigger/L1TCalorimeter/data/egTrimmingLUT_10_v16.01.19.txt",
-    egHOverEcutBarrel          = 3,
-    egHOverEcutEndcap          = 4,
-    egBypassExtHOverE          = 0,
+    egHOverEcutBarrel          = 1,
+    egHOverEcutEndcap          = 1,
+    egBypassExtHOverE          = 1,
+    egBypassShape              = 1,
+    egBypassECALFG             = 1,
+
     egMaxHOverELUTFile         = "L1Trigger/L1TCalorimeter/data/HoverEIdentification_0.995_v15.12.23.txt",
     egCompressShapesLUTFile    = "L1Trigger/L1TCalorimeter/data/egCompressLUT_v4.txt",
     egShapeIdType              = "compressed",
@@ -37,7 +41,7 @@ caloStage2Params = L1Trigger.L1TCalorimeter.caloParams_cfi.caloParams.clone(
     # jets
     jetSeedThreshold           = 4.0,
     jetPUSType                 = "PhiRing1",
-    jetPUSUsePhiRing           = 1,
+    jetPUSUsePhiRing           = 1, 
 
     # Calibration options
     jetCalibrationType         = "LUT",
@@ -54,8 +58,10 @@ caloStage2Params = L1Trigger.L1TCalorimeter.caloParams_cfi.caloParams.clone(
     etSumBypassEttPUS       = 1,
     etSumBypassEcalSumPUS   = 1,
 
-    etSumMetPUSLUTFile      = "L1Trigger/L1TCalorimeter/data/metPumLUT_2023v0_puppiMet_fit.txt",
+    etSumMetPUSLUTFile               = "L1Trigger/L1TCalorimeter/data/metPumLUT_2022_HCALOff_p5.txt",
 
+    etSumCentralityUpper = [2.0, 6.0, 53.5, 190.0, 645.0, 6000.0, 6000.0, 65535.0],
+    etSumCentralityLower = [0.0,  1.5,  4.0, 47.5, 157.5, 4707.0, 4857.5, 65535.0],
 
     # Layer 1 SF
     layer1ECalScaleETBins = cms.vint32([3, 6, 9, 12, 15, 20, 25, 30, 35, 40, 45, 55, 70, 256]),

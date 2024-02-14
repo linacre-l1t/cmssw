@@ -36,14 +36,13 @@ caloStage2Params = L1Trigger.L1TCalorimeter.caloParams_cfi.caloParams.clone(
 
     # jets
     jetSeedThreshold           = 4.0,
-    jetPUSType                 = "PhiRing1",
-    jetPUSUsePhiRing           = 1,
+    jetPUSType                 = "ChunkyDonut",
 
     # Calibration options
     jetCalibrationType         = "LUT",
     jetCompressPtLUTFile       = "L1Trigger/L1TCalorimeter/data/lut_pt_compress_2017v1.txt",
     jetCompressEtaLUTFile      = "L1Trigger/L1TCalorimeter/data/lut_eta_compress_2017v1.txt",
-    jetCalibrationLUTFile      = "L1Trigger/L1TCalorimeter/data/lut_calib_2023v0_ECALZS_PhiRing.txt",
+    jetCalibrationLUTFile      = "L1Trigger/L1TCalorimeter/data/lut_calib_2022v5_ECALZS_noHFJEC.txt",
 
 
     # sums: 0=ET, 1=HT, 2=MET, 3=MHT
@@ -54,7 +53,7 @@ caloStage2Params = L1Trigger.L1TCalorimeter.caloParams_cfi.caloParams.clone(
     etSumBypassEttPUS       = 1,
     etSumBypassEcalSumPUS   = 1,
 
-    etSumMetPUSLUTFile      = "L1Trigger/L1TCalorimeter/data/metPumLUT_2023v0_puppiMet_fit.txt",
+    etSumMetPUSLUTFile               = "L1Trigger/L1TCalorimeter/data/metPumLUT_2022_HCALOff_p5.txt",
 
 
     # Layer 1 SF
