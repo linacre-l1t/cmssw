@@ -20,6 +20,7 @@ DISPLACED = ''
 
 
 runVtxNN = True
+runJacob = False
 ############################################################
 # import standard configurations
 ############################################################
@@ -97,6 +98,7 @@ process.load("L1Trigger.L1TTrackMatch.l1tTrackerHTMiss_cfi")
 process.load("L1Trigger.L1TTrackMatch.l1tTrackerEmuHTMiss_cfi")
 process.load("L1Trigger.L1TTrackMatch.l1tTrackTripletEmulation_cfi")
 process.load('L1Trigger.VertexFinder.l1tVertexProducer_cfi')
+process.load('L1Trigger.TrackerGTT.Producer_cff')
  
 
 
@@ -129,6 +131,10 @@ if runVtxNN:
 else:
     process.l1tVertexFinderEmulator = process.l1tVertexProducer.clone()
     process.l1tVertexFinderEmulator.VertexReconstruction.Algorithm = "FHEmulation"
+    VertexAssociator = process.l1tTrackVertexAssociationProducer
+    AssociationName = "l1tTrackVertexAssociationProducer"
+if runJacob:
+    process.l1tVertexFinderEmulator = process.ProducerVF.clone()
     VertexAssociator = process.l1tTrackVertexAssociationProducer
     AssociationName = "l1tTrackVertexAssociationProducer"
     
@@ -284,7 +290,13 @@ process.L1TrackNtuple = cms.EDAnalyzer('L1TrackObjectNtupleMaker',
         RecoVertexEmuInputTag=cms.InputTag("l1tVertexFinderEmulator", "L1VerticesEmulation"),
 )
 
+process.L1TrackNtupleJacob = process.L1TrackNtuple.clone(
+    RecoVertexInputTag=cms.InputTag("l1tVertexFinderEmulator", "VertexAccepted"),
+)
+
 process.ntuple = cms.Path(process.L1TrackNtuple)
+if runJacob:
+    process.ntuple = cms.Path(process.L1TrackNtupleJacob)
 
 process.out = cms.OutputModule( "PoolOutputModule",
  #                               outputCommands = process.RAWSIMEventContent.outputCommands,
