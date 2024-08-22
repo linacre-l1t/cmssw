@@ -1,0 +1,4 @@
+<library file="*.cc" name="TrackerGTTPlugins">
+  <use name="L1Trigger/TrackerGTT"/>
+  <flags EDM_PLUGIN="1"/>
+</library>

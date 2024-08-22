@@ -1,0 +1,7 @@
+<library file="*.cc" name="TrackerGTTTests">
+  <use name="CommonTools/UtilAlgos"/>
+  <use name="L1Trigger/TrackerGTT"/>
+  <use name="SimTracker/TrackTriggerAssociation"/>
+  <use name="SimTracker/VertexAssociation"/>
+  <flags EDM_PLUGIN="1"/>
+</library>
