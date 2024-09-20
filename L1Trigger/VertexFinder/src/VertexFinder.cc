@@ -4,6 +4,80 @@ using namespace std;
 
 namespace l1tVertexFinder {
 
+  void VertexFinder::computeAndSetVertexParametersPFA(RecoVertex<>& vertex) {
+    double pt = 0.;
+    double z0 = -999.;
+    double z0width = 0.;
+    bool highPt = false;
+    double highestPt = 0.;
+    unsigned int numHighPtTracks = 0;
+
+    double SumGaussianWeight = 0.;
+    double SumGaussianWeightedPt = 0.;
+    double SumGaussianAndPtWeight = 0.;
+    // double sqrt2Pi = std::sqrt(2.*std::numbers::pi);
+    // double sqrt2Pi = std::sqrt(2.*M_PI);
+
+    float SumZ = 0.;
+    float z0square = 0.;
+    float trackPt = 0.;
+    float trackAbsEta = 0.;
+
+    unsigned int itrack = 0;
+
+    for (const L1Track* track : vertex.tracks()) {
+      itrack++;
+      trackPt = track->pt();
+      trackAbsEta = std::fabs(track->eta());
+
+      if (trackPt > settings_->vx_TrackMaxPt()) {
+        highPt = true;
+        numHighPtTracks++;
+        highestPt = (trackPt > highestPt) ? trackPt : highestPt;
+        if (settings_->vx_TrackMaxPtBehavior() == 0)
+          continue;  // ignore this track
+        else if (settings_->vx_TrackMaxPtBehavior() == 1)
+          trackPt = settings_->vx_TrackMaxPt();  // saturate
+      }
+
+      // double GaussianWidth = 0.15;
+      double GaussianWidth = 0.09867 + 0.0007 * trackAbsEta + 0.0587 * trackAbsEta * trackAbsEta; // Giovanna's eta-dependent parametrisation
+      // double GaussianWeight = std::exp(-0.5*std::pow((track->z0() - vertex.z0()) / GaussianWidth, 2)) / (GaussianWidth * sqrt2Pi);   // ? no need to include 1/sqrt(2pi) normalisation constant here.
+      double GaussianWeight = std::exp(-0.5*std::pow((track->z0() - vertex.z0()) / GaussianWidth, 2)) / GaussianWidth;
+
+      SumGaussianWeight += GaussianWeight;
+      SumGaussianWeightedPt += GaussianWeight * trackPt;
+      SumGaussianAndPtWeight += GaussianWeight * std::pow(trackPt, settings_->vx_weightedmean());  // TODO: maybe use this instead of SumGaussianWeightedPt, i.e. allow PFA pT weighting power also to vary
+      // pt += std::pow(trackPt, settings_->vx_weightedmean());
+      SumZ += track->z0() * GaussianWeight * std::pow(trackPt, settings_->vx_weightedmean());
+      // z0square += track->z0() * track->z0() * GaussianWeight;  // think we have to include pT weight here too for z0width calculation to be correct
+      z0square += track->z0() * track->z0() * GaussianWeight * std::pow(trackPt, settings_->vx_weightedmean());
+
+    }
+
+    if(SumGaussianWeight > 0) {
+      // pt = SumGaussianWeightedPt;
+      pt = SumGaussianWeightedPt / SumGaussianWeight; // Note: not used anywhere
+      z0 = SumZ / SumGaussianAndPtWeight; // Note: not used anywhere
+      // z0square /= SumGaussianWeight;
+      z0square /= SumGaussianAndPtWeight;
+    }
+
+    z0width = sqrt(std::abs(z0 * z0 - z0square)); // Note: used in setParameters(), but doesn't seem to have any effect on the output root file
+
+    if (settings_->debug() > 2) {
+      edm::LogInfo("VertexFinder") <<"debug: "<<settings_->debug()<<" SumGaussianWeight: "<<SumGaussianWeight<<" SumGaussianWeightedPt: "<<SumGaussianWeightedPt<<" pt: "<<pt<<" vertex.z0(): "<<vertex.z0()<<" z0: "<<z0<<" z0width: "<<z0width<<" highPt: "<<highPt<<" numHighPtTracks: "<<numHighPtTracks<<" highestPt: "<<highestPt;
+      std::cout<<"debug: "<<settings_->debug()<<" SumGaussianWeight: "<<SumGaussianWeight<<" SumGaussianWeightedPt: "<<SumGaussianWeightedPt<<" pt: "<<pt<<" vertex.z0(): "<<vertex.z0()<<" z0: "<<z0<<" z0width: "<<z0width<<" highPt: "<<highPt<<" numHighPtTracks: "<<numHighPtTracks<<" highestPt: "<<highestPt<<std::endl;
+    }
+
+    vertex.setParameters(SumGaussianWeightedPt, vertex.z0(), z0width, highPt, numHighPtTracks, highestPt); // TODO: z0 is probably slightly more accurate than vertex.z0()
+  }
+
+
+
+
+
+
   void VertexFinder::computeAndSetVertexParameters(RecoVertex<>& vertex,
                                                    const std::vector<float>& bin_centers,
                                                    const std::vector<unsigned int>& counts) {
@@ -604,6 +678,35 @@ namespace l1tVertexFinder {
       }
     }
   }
+
+
+  void VertexFinder::PFA() {
+    float vxPt = 0.;
+    RecoVertex leading_vertex;
+
+    for (float z = settings_->vx_pfa_min(); z <= settings_->vx_pfa_max();
+         z += settings_->vx_pfa_binwidth()) {
+      RecoVertex vertex;
+      vertex.setZ0(z);
+      for (const L1Track& track : fitTracks_) {
+        if (std::abs(z - track.z0()) < settings_->vx_pfa_width()) {
+          vertex.insert(&track);
+        }
+      }
+      computeAndSetVertexParametersPFA(vertex);
+      if (vertex.pt() > vxPt) {
+        leading_vertex = vertex;
+        vxPt = vertex.pt();
+      }
+    }
+
+    vertices_.emplace_back(leading_vertex);
+    pv_index_ = 0;  // by default PFA algorithm finds only hard PV
+  }                 // end of PFA
+
+
+
+
 
   void VertexFinder::fastHistoLooseAssociation() {
     float vxPt = 0.;

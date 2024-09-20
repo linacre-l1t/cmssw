@@ -11,6 +11,7 @@
 namespace l1tVertexFinder {
 
   enum class Algorithm {
+    PFA,
     fastHisto,
     fastHistoEmulation,
     fastHistoLooseAssociation,
@@ -49,6 +50,13 @@ namespace l1tVertexFinder {
     float vx_chi2cut() const { return vx_chi2cut_; }
     // Do track quality cuts in emulation algorithms
     bool vx_DoQualityCuts() const { return vx_DoQualityCuts_; }
+    // PFA scan parameters (min, max, width)
+    std::vector<double> vx_pfa_scanparameters() const { return vx_pfa_scanparameters_; }
+    double vx_pfa_min() const { return vx_pfa_scanparameters_.at(0); }
+    double vx_pfa_max() const { return vx_pfa_scanparameters_.at(1); }
+    double vx_pfa_binwidth() const { return vx_pfa_scanparameters_.at(2); }
+    // PFA Gaussian width cutoff
+    float vx_pfa_width() const { return vx_pfa_width_; }
     // Window size of the sliding window
     unsigned int vx_windowSize() const { return vx_windowSize_; }
     // fastHisto histogram parameters (min, max, width)
@@ -112,6 +120,8 @@ namespace l1tVertexFinder {
     unsigned int vx_weightedmean_;
     float vx_chi2cut_;
     bool vx_DoQualityCuts_;
+    std::vector<double> vx_pfa_scanparameters_;
+    float vx_pfa_width_;
     bool vx_DoPtComp_;
     bool vx_DoTightChi2_;
     std::vector<double> vx_histogram_parameters_;

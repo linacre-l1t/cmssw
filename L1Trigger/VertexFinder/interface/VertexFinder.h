@@ -135,6 +135,10 @@ namespace l1tVertexFinder {
     void computeAndSetVertexParameters(RecoVertex<>& vertex,
                                        const std::vector<float>& bin_centers,
                                        const std::vector<unsigned int>& counts);
+
+    void computeAndSetVertexParametersPFA(RecoVertex<>& vertex);
+    /// Peak finding algorithm
+    void PFA();
     /// DBSCAN algorithm
     void DBSCAN();
     /// High pT Vertex Algorithm

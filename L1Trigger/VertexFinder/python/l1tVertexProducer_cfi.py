@@ -8,7 +8,7 @@ l1tVertexProducer = cms.EDProducer('VertexProducer',
   # === Vertex Reconstruction configuration
   VertexReconstruction = cms.PSet(
         # Vertex Reconstruction Algorithm
-        Algorithm = cms.string("fastHisto"),
+        Algorithm = cms.string("PFA"),
         # Vertex distance [cm]
         VertexDistance = cms.double(.15),
         # Assumed Vertex Resolution [cm]
@@ -30,6 +30,10 @@ l1tVertexProducer = cms.EDProducer('VertexProducer',
         FH_DoPtComp = cms.bool(True),
         # chi2dof < 5 for tracks with Pt > 10
         FH_DoTightChi2 = cms.bool(False),
+        # PFA algorithm scan parameters (min,max,width) [cm]
+        PFA_ScanParameters = cms.vdouble(-20.46912512, 20.46912512, 0.03997876),
+        # PFA Gaussian width cutoff [cm]
+        PFA_VertexWidth = cms.double(1.0),
         # fastHisto algorithm histogram parameters (min,max,width) [cm]
         # TDR settings: [-14.95, 15.0, 0.1]
         # L1TkPrimaryVertexProducer: [-30.0, 30.0, 0.09983361065]
