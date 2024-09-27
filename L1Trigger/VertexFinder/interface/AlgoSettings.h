@@ -12,6 +12,7 @@ namespace l1tVertexFinder {
 
   enum class Algorithm {
     PFA,
+    PFASingleVertex,
     fastHisto,
     fastHistoEmulation,
     fastHistoLooseAssociation,
@@ -57,6 +58,8 @@ namespace l1tVertexFinder {
     double vx_pfa_binwidth() const { return vx_pfa_scanparameters_.at(2); }
     // PFA Gaussian width cutoff
     float vx_pfa_width() const { return vx_pfa_width_; }
+    // Enable 2-step process where the weighted pT sum is only calculated at positions where the weighted multiplicity is maximum ("local maxima"). In the second step, the local maximum with the largest weighted pT sum is chosen as the vertex.
+    bool vx_pfa_usemultiplicitymaxima() const { return vx_pfa_usemultiplicitymaxima_; }
     // Weight function to use in PFA. 0: Gaussian, 1: Gaussian without width normalisation, 2: Complementary error function
     unsigned int vx_pfa_weightfunction() const { return vx_pfa_weightfunction_; }
     // Instead of taking the z0 value from the discrete PFA scan, calculate it from the Gaussian and pT-weighted sum of track z0
@@ -126,6 +129,7 @@ namespace l1tVertexFinder {
     bool vx_DoQualityCuts_;
     std::vector<double> vx_pfa_scanparameters_;
     float vx_pfa_width_;
+    bool vx_pfa_usemultiplicitymaxima_;
     unsigned int vx_pfa_weightfunction_;
     bool vx_pfa_calculatedweightedz0_;
     bool vx_DoPtComp_;

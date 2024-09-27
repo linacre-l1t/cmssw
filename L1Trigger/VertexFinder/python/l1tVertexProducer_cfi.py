@@ -34,6 +34,8 @@ l1tVertexProducer = cms.EDProducer('VertexProducer',
         PFA_ScanParameters = cms.vdouble(-20.46912512, 20.46912512, 0.03997876),
         # PFA Gaussian width cutoff [cm]
         PFA_VertexWidth = cms.double(1.31), # Giovanna's recommendation of 3*sigma(lowest-resolution tracks).
+        # Enable 2-step process where the weighted pT sum is only calculated at positions where the weighted multiplicity is maximum ("local maxima"). In the second step, the local maximum with the largest weighted pT sum is chosen as the vertex.
+        PFA_UseMultiplicityMaxima = cms.bool(False),
         # Weight function to use in PFA. 0: Gaussian, 1: Gaussian without width normalisation, 2: Complementary error function
         PFA_WeightFunction = cms.uint32(0),
         # Instead of taking the z0 value from the discrete PFA scan, calculate it from the Gaussian and pT-weighted sum of track z0

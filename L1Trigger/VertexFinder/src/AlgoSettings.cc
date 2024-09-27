@@ -15,6 +15,7 @@ namespace l1tVertexFinder {
         vx_DoQualityCuts_(vertex_.getParameter<bool>("EM_DoQualityCuts")),
         vx_pfa_scanparameters_(vertex_.getParameter<std::vector<double> >("PFA_ScanParameters")),
         vx_pfa_width_(vertex_.getParameter<double>("PFA_VertexWidth")),
+        vx_pfa_usemultiplicitymaxima_(vertex_.getParameter<bool>("PFA_UseMultiplicityMaxima")),
         vx_pfa_weightfunction_(vertex_.getParameter<unsigned int>("PFA_WeightFunction")),
         vx_pfa_calculatedweightedz0_(vertex_.getParameter<bool>("PFA_CalculatedWeightedZ0")),
         vx_DoPtComp_(vertex_.getParameter<bool>("FH_DoPtComp")),
@@ -62,6 +63,7 @@ namespace l1tVertexFinder {
 
   const std::map<std::string, Algorithm> AlgoSettings::algoNameMap = {
       {"PFA", Algorithm::PFA},
+      {"PFASingleVertex", Algorithm::PFASingleVertex},
       {"fastHisto", Algorithm::fastHisto},
       {"fastHistoEmulation", Algorithm::fastHistoEmulation},
       {"fastHistoLooseAssociation", Algorithm::fastHistoLooseAssociation},
@@ -76,6 +78,7 @@ namespace l1tVertexFinder {
 
   const std::map<Algorithm, Precision> AlgoSettings::algoPrecisionMap = {
       {Algorithm::PFA, Precision::Simulation},
+      {Algorithm::PFASingleVertex, Precision::Simulation},
       {Algorithm::fastHisto, Precision::Simulation},
       {Algorithm::fastHistoEmulation, Precision::Emulation},
       {Algorithm::fastHistoLooseAssociation, Precision::Simulation},

@@ -4,7 +4,7 @@ using namespace std;
 
 namespace l1tVertexFinder {
 
-  void VertexFinder::computeAndSetVertexParametersPFA(RecoVertex<>& vertex) {
+  double VertexFinder::computeAndSetVertexParametersPFA(RecoVertex<>& vertex) {
     double pt = 0.;
     double z0 = -999.;
     double z0width = 0.;
@@ -84,6 +84,7 @@ namespace l1tVertexFinder {
     z0 = settings_->vx_pfa_calculatedweightedz0() ? z0 : vertex.z0();
 
     vertex.setParameters(pt, z0, z0width, highPt, numHighPtTracks, highestPt);
+    return SumWeight;
   }
 
 
@@ -693,7 +694,7 @@ namespace l1tVertexFinder {
   }
 
 
-  void VertexFinder::PFA() {
+  void VertexFinder::PFASingleVertex() {
     float vxPt = 0.;
     RecoVertex leading_vertex;
 
@@ -714,9 +715,73 @@ namespace l1tVertexFinder {
     }
 
     vertices_.emplace_back(leading_vertex);
-    pv_index_ = 0;  // by default PFA algorithm finds only hard PV
-  }                 // end of PFA
+    pv_index_ = 0;  // finds only hard PV
+  }                 // end of PFASingleVertex
 
+
+
+  void VertexFinder::PFA() {
+
+    RecoVertex vertex2(-999.);
+    RecoVertex vertex3(-999.);
+
+    vertex2.setPt(0.);
+    vertex3.setPt(0.);
+
+    double vertexMult1 = 0.;
+    double vertexMult2 = 0.;
+    double vertexMult3 = 0.;
+
+    // int nbins = std::ceil((settings_->vx_pfa_min() - settings_->vx_pfa_max()) / settings_->vx_pfa_binwidth());
+    std::vector<RecoVertex<>> sums;
+    int counter = 0;
+
+    for (float z = settings_->vx_pfa_min() - settings_->vx_pfa_binwidth(); z <= settings_->vx_pfa_max() + settings_->vx_pfa_binwidth();
+         z += settings_->vx_pfa_binwidth()) { // TODO: replace with integer for loop
+
+      vertex2 = vertex3;
+
+      vertexMult1 = vertexMult2;
+      vertexMult2 = vertexMult3;
+
+      RecoVertex vertex;
+      vertex.setZ0(z);
+      for (const L1Track& track : fitTracks_) {
+        if (std::abs(z - track.z0()) < settings_->vx_pfa_width()) {
+          vertex.insert(&track);
+        }
+      }
+      vertexMult3 = computeAndSetVertexParametersPFA(vertex);
+      vertex3 = vertex;
+
+      if ( counter > 1 && (!settings_->vx_pfa_usemultiplicitymaxima() || (vertexMult2 > vertexMult1 && vertexMult2 > vertexMult3)) ) {
+        sums.emplace_back(vertex2);
+      }
+      ++counter;
+    }
+
+    // Find the maxima of the sums
+    float sigma_max = -999;
+    int imax = -999;
+    std::vector<int> found;
+    found.reserve(settings_->vx_nvtx());
+    for (unsigned int ivtx = 0; ivtx < settings_->vx_nvtx(); ivtx++) {
+      sigma_max = -999;
+      imax = -999;
+      for (unsigned int i = 0; i < sums.size(); i++) {
+        // Skip this window if it will already be returned
+        if (find(found.begin(), found.end(), i) != found.end())
+          continue;
+        if (sums.at(i).pt() > sigma_max) {
+          sigma_max = sums.at(i).pt();
+          imax = i;
+        }
+      }
+      found.push_back(imax);
+      vertices_.emplace_back(sums.at(imax));
+    }
+    pv_index_ = 0;
+  }                 // end of PFA
 
 
 
