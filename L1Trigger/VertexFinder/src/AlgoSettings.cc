@@ -15,6 +15,8 @@ namespace l1tVertexFinder {
         vx_DoQualityCuts_(vertex_.getParameter<bool>("EM_DoQualityCuts")),
         vx_pfa_scanparameters_(vertex_.getParameter<std::vector<double> >("PFA_ScanParameters")),
         vx_pfa_width_(vertex_.getParameter<double>("PFA_VertexWidth")),
+        vx_pfa_weightfunction_(vertex_.getParameter<unsigned int>("PFA_WeightFunction")),
+        vx_pfa_calculatedweightedz0_(vertex_.getParameter<bool>("PFA_CalculatedWeightedZ0")),
         vx_DoPtComp_(vertex_.getParameter<bool>("FH_DoPtComp")),
         vx_DoTightChi2_(vertex_.getParameter<bool>("FH_DoTightChi2")),
         vx_histogram_parameters_(vertex_.getParameter<std::vector<double> >("FH_HistogramParameters")),

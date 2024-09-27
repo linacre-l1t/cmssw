@@ -33,7 +33,11 @@ l1tVertexProducer = cms.EDProducer('VertexProducer',
         # PFA algorithm scan parameters (min,max,width) [cm]
         PFA_ScanParameters = cms.vdouble(-20.46912512, 20.46912512, 0.03997876),
         # PFA Gaussian width cutoff [cm]
-        PFA_VertexWidth = cms.double(1.0),
+        PFA_VertexWidth = cms.double(1.31), # Giovanna's recommendation of 3*sigma(lowest-resolution tracks).
+        # Weight function to use in PFA. 0: Gaussian, 1: Gaussian without width normalisation, 2: Complementary error function
+        PFA_WeightFunction = cms.uint32(0),
+        # Instead of taking the z0 value from the discrete PFA scan, calculate it from the Gaussian and pT-weighted sum of track z0
+        PFA_CalculatedWeightedZ0 = cms.bool(False),
         # fastHisto algorithm histogram parameters (min,max,width) [cm]
         # TDR settings: [-14.95, 15.0, 0.1]
         # L1TkPrimaryVertexProducer: [-30.0, 30.0, 0.09983361065]
