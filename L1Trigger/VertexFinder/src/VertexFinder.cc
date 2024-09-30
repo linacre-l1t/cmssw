@@ -728,9 +728,9 @@ namespace l1tVertexFinder {
     vertex2.setPt(0.);
     vertex3.setPt(0.);
 
-    double vertexMult1 = 0.;
-    double vertexMult2 = 0.;
-    double vertexMult3 = 0.;
+    double vertexScore1 = 0.;
+    double vertexScore2 = 0.;
+    double vertexScore3 = 0.;
 
     // int nbins = std::ceil((settings_->vx_pfa_min() - settings_->vx_pfa_max()) / settings_->vx_pfa_binwidth());
     std::vector<RecoVertex<>> sums;
@@ -741,8 +741,8 @@ namespace l1tVertexFinder {
 
       vertex2 = vertex3;
 
-      vertexMult1 = vertexMult2;
-      vertexMult2 = vertexMult3;
+      vertexScore1 = vertexScore2;
+      vertexScore2 = vertexScore3;
 
       RecoVertex vertex;
       vertex.setZ0(z);
@@ -751,10 +751,14 @@ namespace l1tVertexFinder {
           vertex.insert(&track);
         }
       }
-      vertexMult3 = computeAndSetVertexParametersPFA(vertex);
+      vertexScore3 = computeAndSetVertexParametersPFA(vertex);
       vertex3 = vertex;
 
-      if ( counter > 1 && (!settings_->vx_pfa_usemultiplicitymaxima() || (vertexMult2 > vertexMult1 && vertexMult2 > vertexMult3)) ) {
+      if (!settings_->vx_pfa_usemultiplicitymaxima()) {
+        vertexScore3 = vertex3.pt();
+      }
+
+      if ( counter > 1 && (vertexScore2 > vertexScore1) && (vertexScore2 > vertexScore3) ) {
         sums.emplace_back(vertex2);
       }
       ++counter;
