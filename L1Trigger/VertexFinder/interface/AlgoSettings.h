@@ -56,14 +56,20 @@ namespace l1tVertexFinder {
     double vx_pfa_min() const { return vx_pfa_scanparameters_.at(0); }
     double vx_pfa_max() const { return vx_pfa_scanparameters_.at(1); }
     double vx_pfa_binwidth() const { return vx_pfa_scanparameters_.at(2); }
+    // Include eta-dependence of the estimated track resolution used in PFA
+    bool vx_pfa_etadependentresolution() const { return vx_pfa_etadependentresolution_; }
+    // Scale factor for the PFA track resolution parameter (where the nominal values with and without eta-dependence are hard-coded using the fit results from Giovanna's thesis)
+    double vx_pfa_resolutionSF() const { return vx_pfa_resolutionSF_; }
     // PFA Gaussian width cutoff
-    float vx_pfa_width() const { return vx_pfa_width_; }
+    double vx_pfa_width() const { return vx_pfa_width_; }
     // Enable 2-step process where the weighted pT sum is only calculated at positions where the weighted multiplicity is maximum ("local maxima"). In the second step, the local maximum with the largest weighted pT sum is chosen as the vertex.
     bool vx_pfa_usemultiplicitymaxima() const { return vx_pfa_usemultiplicitymaxima_; }
     // Weight function to use in PFA. 0: Gaussian, 1: Gaussian without width normalisation, 2: Complementary error function
     unsigned int vx_pfa_weightfunction() const { return vx_pfa_weightfunction_; }
-    // Instead of taking the z0 value from the discrete PFA scan, calculate it from the Gaussian and pT-weighted sum of track z0
-    bool vx_pfa_calculatedweightedz0() const { return vx_pfa_calculatedweightedz0_; }
+    // Instead of taking the z0 value from the discrete PFA scan (0), calculate it from the Gaussian and pT-weighted sum of track z0 (1) or the optimal (1/variance) weighted mean of associated tracks, weighted also by pT and association probability (2)
+    unsigned int vx_pfa_weightedz0() const { return vx_pfa_weightedz0_; }
+    // Use vx_TrackMinPt cut specified below (otherwise no additional track selection is applied)
+    bool vx_pfa_doqualitycuts() const { return vx_pfa_doqualitycuts_; }
     // Window size of the sliding window
     unsigned int vx_windowSize() const { return vx_windowSize_; }
     // fastHisto histogram parameters (min, max, width)
@@ -128,10 +134,13 @@ namespace l1tVertexFinder {
     float vx_chi2cut_;
     bool vx_DoQualityCuts_;
     std::vector<double> vx_pfa_scanparameters_;
-    float vx_pfa_width_;
+    bool vx_pfa_etadependentresolution_;
+    double vx_pfa_resolutionSF_;
+    double vx_pfa_width_;
     bool vx_pfa_usemultiplicitymaxima_;
     unsigned int vx_pfa_weightfunction_;
-    bool vx_pfa_calculatedweightedz0_;
+    unsigned int vx_pfa_weightedz0_;
+    bool vx_pfa_doqualitycuts_;
     bool vx_DoPtComp_;
     bool vx_DoTightChi2_;
     std::vector<double> vx_histogram_parameters_;

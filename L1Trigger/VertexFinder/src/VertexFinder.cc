@@ -8,19 +8,22 @@ namespace l1tVertexFinder {
     double pt = 0.;
     double z0 = -999.;
     double z0width = 0.;
+    double z0Alt = -999.;
+    double z0widthAlt = 0.;
     bool highPt = false;
     double highestPt = 0.;
     unsigned int numHighPtTracks = 0;
 
-    double SumWeight = 0.;
-    double SumWeightedPt = 0.;
+    const float sqrt0p5 = std::sqrt(0.5);
 
-    double SumGaussianAndPtWeight = 0.;
-
-    double sqrt0p5 = std::sqrt(0.5);
-
+    float SumWeight = 0.;
+    float SumWeightedPt = 0.;
+    float SumGaussianAndPtWeight = 0.;
     float SumZ = 0.;
     float z0square = 0.;
+    float SumGaussianAndPtWeightAlt = 0.;
+    float SumZAlt = 0.;
+    float z0squareAlt = 0.;
     float trackPt = 0.;
     float trackAbsEta = 0.;
 
@@ -41,21 +44,20 @@ namespace l1tVertexFinder {
           trackPt = settings_->vx_TrackMaxPt();  // saturate
       }
 
-      //TODO: include same track quality cuts as in fasthisto
+      float GaussianWidth = settings_->vx_pfa_etadependentresolution() ? 0.09867 + 0.0007 * trackAbsEta + 0.0587 * trackAbsEta * trackAbsEta : 0.15; // Giovanna's constant and eta-dependent parametrisation
+      GaussianWidth *= settings_->vx_pfa_resolutionSF();
+      float GaussianWeight = std::exp(-0.5*std::pow((track->z0() - vertex.z0()) / GaussianWidth, 2)) / GaussianWidth; // No need to include 1/sqrt(2pi) normalisation constant here.
 
-      // double GaussianWidth = 0.15;
-      double GaussianWidth = 0.09867 + 0.0007 * trackAbsEta + 0.0587 * trackAbsEta * trackAbsEta; // Giovanna's eta-dependent parametrisation
-      double GaussianWeight = std::exp(-0.5*std::pow((track->z0() - vertex.z0()) / GaussianWidth, 2)) / GaussianWidth; // No need to include 1/sqrt(2pi) normalisation constant here.
-
-      double deltaZ = std::fabs(track->z0() - vertex.z0());
+      float deltaZ = std::fabs(track->z0() - vertex.z0());
       deltaZ = (deltaZ > 0.5 * settings_->vx_pfa_binwidth()) ? deltaZ - 0.5 * settings_->vx_pfa_binwidth() : 0;
-      double ErfcWeight = std::erfc( sqrt0p5 * deltaZ / GaussianWidth ); // i.e. reducing the weight based on the probability that a track from a vertex in this region would be closer than deltaZ
+      float ErfcWeight = std::erfc( sqrt0p5 * deltaZ / GaussianWidth ); // i.e. reducing the weight based on the probability that a track from a vertex in this region would be closer than deltaZ
 
       if (settings_->debug() > 4) {
         std::cout<<"GaussianWidth: "<<GaussianWidth<<" nSigma: "<<deltaZ / GaussianWidth<<" ErfcWeight: "<<ErfcWeight<<" GaussianWeight: "<<GaussianWeight * GaussianWidth<<std::endl;
       }
 
-      double weight = settings_->vx_pfa_weightfunction() == 2 ? ErfcWeight : GaussianWeight;
+      // Choice of weight function to use for the vertex score in PFA
+      float weight = settings_->vx_pfa_weightfunction() == 2 ? ErfcWeight : GaussianWeight;
       if (settings_->vx_pfa_weightfunction() == 1) {
         weight *= GaussianWidth;
       }
@@ -63,10 +65,18 @@ namespace l1tVertexFinder {
       SumWeight += weight;
       SumWeightedPt += weight * std::pow(trackPt, settings_->vx_weightedmean());
 
-      SumGaussianAndPtWeight += GaussianWeight * std::pow(trackPt, settings_->vx_weightedmean());
-      SumZ += track->z0() * GaussianWeight * std::pow(trackPt, settings_->vx_weightedmean());
-      z0square += track->z0() * track->z0() * GaussianWeight * std::pow(trackPt, settings_->vx_weightedmean());
+      // Gaussian- and pT-weighted sums for estimates of vertex z0 and z0square based on the points of highest cumulative density of the contributions from each track at a given z0 position
+      float totalweight = GaussianWeight * std::pow(trackPt, settings_->vx_weightedmean());
+      SumGaussianAndPtWeight += totalweight;
+      SumZ += track->z0() * totalweight;
+      z0square += track->z0() * track->z0() * totalweight;
 
+      // Estimates of vertex z0 and z0square based on optimal combination (weighted by 1/variance) of the z0 of the tracks associated to the vertex, weighted also by pT and association probability
+      // Note, all tracks in the bin have association probability 1 based on the definiton of deltaZ above, so this method won't work well for large bin widths. In that case, the ErfcWeight should really be re-calculated at the best estimate point of z0, but this would require a second loop over tracks.
+      float totalweightAlt = ErfcWeight * std::pow(trackPt, settings_->vx_weightedmean()) / GaussianWidth / GaussianWidth;
+      SumGaussianAndPtWeightAlt += totalweightAlt;
+      SumZAlt += track->z0() * totalweightAlt;
+      z0squareAlt += track->z0() * track->z0() * totalweightAlt;
     }
 
     double pt_av = SumWeight > 0 ? SumWeightedPt / SumWeight : 0; // Note: not used anywhere
@@ -75,13 +85,19 @@ namespace l1tVertexFinder {
       z0square /= SumGaussianAndPtWeight;
       z0width = sqrt(std::abs(z0 * z0 - z0square)); // Note: used in setParameters(), but doesn't seem to have any effect on the output root file
     }
+    if(SumGaussianAndPtWeightAlt > 0) {
+      z0Alt = SumZAlt / SumGaussianAndPtWeightAlt;
+      z0squareAlt /= SumGaussianAndPtWeightAlt;
+      z0widthAlt = sqrt(std::abs(z0Alt * z0Alt - z0squareAlt));
+    }
 
     if (settings_->debug() > 3) {
       std::cout<<"debug: "<<settings_->debug()<<" SumWeight: "<<SumWeight<<" SumWeightedPt: "<<SumWeightedPt<<" average pt: "<<pt_av<<" vertex.z0(): "<<vertex.z0()<<" z0: "<<z0<<" z0width: "<<z0width<<" highPt: "<<highPt<<" numHighPtTracks: "<<numHighPtTracks<<" highestPt: "<<highestPt<<std::endl;
     }
 
     pt = SumWeightedPt;
-    z0 = settings_->vx_pfa_calculatedweightedz0() ? z0 : vertex.z0();
+    z0 = settings_->vx_pfa_weightedz0() > 0 ? ( settings_->vx_pfa_weightedz0() == 2 ? z0Alt : z0 ) : vertex.z0();
+    z0width = settings_->vx_pfa_weightedz0() > 0 ? ( settings_->vx_pfa_weightedz0() == 2 ? z0widthAlt : z0width ) : 0.;
 
     vertex.setParameters(pt, z0, z0width, highPt, numHighPtTracks, highestPt);
     return SumWeight;
@@ -739,18 +755,24 @@ namespace l1tVertexFinder {
     for (float z = settings_->vx_pfa_min() - settings_->vx_pfa_binwidth(); z <= settings_->vx_pfa_max() + settings_->vx_pfa_binwidth();
          z += settings_->vx_pfa_binwidth()) { // TODO: replace with integer for loop
 
-      vertex2 = vertex3;
-
+      // Store vertex scores in 3 successive bins so we can identify local maxima
       vertexScore1 = vertexScore2;
       vertexScore2 = vertexScore3;
+      // Store the vertex from the previous bin in case it was a local maximum
+      vertex2 = vertex3;
 
       RecoVertex vertex;
       vertex.setZ0(z);
       for (const L1Track& track : fitTracks_) {
-        if (std::abs(z - track.z0()) < settings_->vx_pfa_width()) {
-          vertex.insert(&track);
-        }
-      }
+        if (std::abs(z - track.z0()) > settings_->vx_pfa_width())
+          continue;
+
+        if (settings_->vx_pfa_doqualitycuts() & (track.pt() < settings_->vx_TrackMinPt())) // minimal additional quality cut as done in fastHistoEmulation()
+          continue;
+
+        vertex.insert(&track);
+      } // end loop over tracks
+
       vertexScore3 = computeAndSetVertexParametersPFA(vertex);
       vertex3 = vertex;
 
@@ -758,7 +780,7 @@ namespace l1tVertexFinder {
         vertexScore3 = vertex3.pt();
       }
 
-      if ( counter > 1 && (vertexScore2 > vertexScore1) && (vertexScore2 > vertexScore3) ) {
+      if ( counter > 1 && (vertexScore2 > vertexScore1) && (vertexScore2 > vertexScore3) ) { // only keep vertices whose score is a local maximum
         sums.emplace_back(vertex2);
       }
       ++counter;
