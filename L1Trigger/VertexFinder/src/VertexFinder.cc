@@ -740,26 +740,46 @@ namespace l1tVertexFinder {
 
     RecoVertex vertex2(-999.);
     RecoVertex vertex3(-999.);
+    RecoVertex vertex4(-999.);
 
     vertex2.setPt(0.);
     vertex3.setPt(0.);
+    vertex4.setPt(0.);
 
     double vertexScore1 = 0.;
     double vertexScore2 = 0.;
     double vertexScore3 = 0.;
+    double vertexScore4 = 0.;
+
+    double zCorrection2 = 0.;
+    double zCorrection3 = 0.;
+    double zCorrection4 = 0.;
+
+    bool vertex1LocalMaximum = false;
+    bool vertex2LocalMaximum = false;
+    bool vertex3LocalMaximum = false;
 
     // int nbins = std::ceil((settings_->vx_pfa_min() - settings_->vx_pfa_max()) / settings_->vx_pfa_binwidth());
     std::vector<RecoVertex<>> sums;
     int counter = 0;
 
-    for (float z = settings_->vx_pfa_min() - settings_->vx_pfa_binwidth(); z <= settings_->vx_pfa_max() + settings_->vx_pfa_binwidth();
+    for (float z = settings_->vx_pfa_min() - settings_->vx_pfa_binwidth(); z <= settings_->vx_pfa_max() + 2.*settings_->vx_pfa_binwidth();
          z += settings_->vx_pfa_binwidth()) { // TODO: replace with integer for loop
 
       // Store vertex scores in 3 successive bins so we can identify local maxima
       vertexScore1 = vertexScore2;
       vertexScore2 = vertexScore3;
-      // Store the vertex from the previous bin in case it was a local maximum
+      vertexScore3 = vertexScore4;
+
+      vertex1LocalMaximum = vertex2LocalMaximum;
+      vertex2LocalMaximum = vertex3LocalMaximum;
+
+      zCorrection2 = zCorrection3;
+      zCorrection3 = zCorrection4;
+
+      // Store the vertices from previous iterations in case we need to keep them (i.e. if they are a local maximum or adjacent maximum)
       vertex2 = vertex3;
+      vertex3 = vertex4;
 
       RecoVertex vertex;
       vertex.setZ0(z);
@@ -773,14 +793,26 @@ namespace l1tVertexFinder {
         vertex.insert(&track);
       } // end loop over tracks
 
-      vertexScore3 = computeAndSetVertexParametersPFA(vertex);
-      vertex3 = vertex;
+      vertexScore4 = computeAndSetVertexParametersPFA(vertex);
+      vertex4 = vertex;
 
       if (!settings_->vx_pfa_usemultiplicitymaxima()) {
-        vertexScore3 = vertex3.pt();
+        vertexScore4 = vertex4.pt();
       }
 
-      if ( counter > 1 && (vertexScore2 > vertexScore1) && (vertexScore2 > vertexScore3) ) { // only keep vertices whose score is a local maximum
+      // find out if vertex3 is a local maximum
+      vertex3LocalMaximum = (counter > 1) && (vertexScore3 > vertexScore2) && (vertexScore3 > vertexScore4);
+
+      bool adjacentR = false;
+      bool adjacentL = false;
+
+      if (settings_->vx_pfa_weightedz0() > 0) {
+        zCorrection4 = vertex4.z0() - z;
+        adjacentR = (counter > 2) && (vertex1LocalMaximum) && (vertexScore2 > vertexScore3) && (zCorrection2 > 0);
+        adjacentL = (counter > 2) && (vertex3LocalMaximum) && (vertexScore2 > vertexScore1) && (zCorrection2 < 0);
+      }
+
+      if ( vertex2LocalMaximum || adjacentL || adjacentR ) { // only keep bins whose score is a local maximum. Also keep bins adjacent to a local maximum if zCorrection consistent with being populated from a separate vertex.
         sums.emplace_back(vertex2);
       }
       ++counter;
