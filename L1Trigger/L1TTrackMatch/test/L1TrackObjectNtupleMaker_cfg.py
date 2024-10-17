@@ -76,7 +76,7 @@ process.Timing = cms.Service("Timing",
   useJobReport = cms.untracked.bool(False)
 )
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('GTTObjects_temp.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('/mercury/data3/linacre/linacre-l1t/output/GTTObjects_temp.root'), closeFileFast = cms.untracked.bool(True))
 
 
 ############################################################
@@ -301,30 +301,39 @@ process.ntuple = cms.Path(process.L1TrackNtuple)
 
 # variations
 
-parameters = [ "Algorithm", "PFA_EtaDependentResolution", "PFA_ResolutionSF", "PFA_UseMultiplicityMaxima", "PFA_WeightFunction", "PFA_WeightedZ0" ]
+parameters = [ "Algorithm", "PFA_EtaDependentResolution", "PFA_ResolutionSF", "PFA_UseMultiplicityMaxima", "PFA_WeightFunction", "PFA_WeightedZ0", "WeightedMean" ]
 variations_template = lambda SF: [
-    ["", "PFA", True, SF, False, 2, 2],
-    ["", "PFA", True, SF, False, 1, 2],
-    ["", "PFA", True, SF, False, 0, 2],
-    ["", "PFA", True, SF, False, 2, 1],
-    ["", "PFA", True, SF, False, 1, 1],
-    ["", "PFA", True, SF, False, 0, 1],
-    ["", "PFA", True, SF, False, 2, 0],
-    ["", "PFA", True, SF, False, 1, 0],
-    ["", "PFA", True, SF, False, 0, 0],
 
-    ["", "PFA", False, SF, False, 2, 2],
-    ["", "PFA", False, SF, False, 1, 2],
-    # ["", "PFA", False, SF, False, 0, 2],
-    ["", "PFA", False, SF, False, 2, 1],
-    ["", "PFA", False, SF, False, 1, 1],
-    # ["", "PFA", False, SF, False, 0, 1],
-    ["", "PFA", False, SF, False, 2, 0],
-    ["", "PFA", False, SF, False, 1, 0],
-    # ["", "PFA", False, SF, False, 0, 0],
+    ["", "PFA", True, SF, False, 2, 1, 1],
+    ["", "PFA", True, SF, False, 1, 1, 1],
+    ["", "PFA", True, SF, False, 0, 1, 1],
+
+    ["", "PFA", False, SF, False, 2, 1, 1],
+    ["", "PFA", False, SF, False, 1, 1, 1],
+    # ["", "PFA", False, SF, False, 0, 1, 1],
+
+
+    ["", "PFA", True, SF, False, 2, 1, 2],
+    ["", "PFA", True, SF, False, 1, 1, 2],
+    ["", "PFA", True, SF, False, 0, 1, 2],
+
+    ["", "PFA", False, SF, False, 2, 1, 2],
+    ["", "PFA", False, SF, False, 1, 1, 2],
+    # ["", "PFA", False, SF, False, 0, 1, 2],
+
+
+    ["", "PFA", True, SF, False, 2, 1, 3],
+    ["", "PFA", True, SF, False, 1, 1, 3],
+    ["", "PFA", True, SF, False, 0, 1, 3],
+
+    ["", "PFA", False, SF, False, 2, 1, 3],
+    ["", "PFA", False, SF, False, 1, 1, 3],
+    # ["", "PFA", False, SF, False, 0, 1, 3],
+
     ]
 
-variations =  [ ["", "fastHisto", False, 0, False, 0, 0] ] + variations_template(0.5) + variations_template(0.71) + variations_template(1.0) + variations_template(1.41)
+#variations =  [ ["", "fastHisto", False, 0, False, 0, 0] ] + variations_template(1.0)
+variations =  [ ["", "fastHisto", False, 0, False, 0, 0, 1], ["", "fastHisto", False, 0, False, 0, 0, 2], ["", "fastHisto", False, 0, False, 0, 0, 3] ] + variations_template(0.5) + variations_template(0.71) + variations_template(1.0) + variations_template(1.41) + variations_template(2.0)
 
 VertexAssociators = {}
 AssociationNames = {}
@@ -332,7 +341,7 @@ AssociationNames = {}
 # TODO: currently assuming L1TRKALGO = 'HYBRID_PROMPTANDDISP'
 for variation in variations:
     # automatically generate the label and store at the first index
-    variation[0] = variation[1] if variation[1] == "fastHisto" else f"{variation[1]}{'Eta' if variation[2] else 'NoE'}SF{100*variation[3]:03.0f}{'MM' if variation[4] else 'PM'}WF{variation[5]}Z{variation[6]}"
+    variation[0] = f"{variation[1]}P{variation[7]}" if "fastHisto" in variation[1] else f"{variation[1]}{'Eta' if variation[2] else 'NoE'}SF{100*variation[3]:03.0f}{'MM' if variation[4] else 'PM'}WF{variation[5]}Z{variation[6]}P{variation[7]}"
     # print(variation[0])
     setattr(process, f'l1tVertexFinder{variation[0]}', process.l1tVertexFinder.clone())
     for p, param in enumerate(parameters):
