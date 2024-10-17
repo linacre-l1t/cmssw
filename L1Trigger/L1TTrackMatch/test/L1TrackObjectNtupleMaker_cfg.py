@@ -4,6 +4,7 @@
 
 import FWCore.ParameterSet.Config as cms
 import FWCore.Utilities.FileUtils as FileUtils
+import FWCore.ParameterSet.VarParsing as VarParsing
 import os
 
 ############################################################
@@ -19,7 +20,7 @@ L1TRKALGO = 'HYBRID_PROMPTANDDISP'
 DISPLACED = ''
 
 
-runVtxNN = False
+runVtxNN = True
 
 # process.options = cms.untracked.PSet(
 #  TryToContinue = cms.untracked.vstring('ProductNotFound')
@@ -46,10 +47,19 @@ process.MessageLogger.cerr.INFO.limit = cms.untracked.int32(0) # default: 0
 # input and output
 ############################################################
 
+options = VarParsing.VarParsing ('analysis')
+options.parseArguments()
+
+inputFiles = []
+for filePath in options.inputFiles:
+    if filePath.endswith(".root"):
+        inputFiles.append(filePath)
+    else:
+        inputFiles += FileUtils.loadListFromFile(filePath)
+
 process.maxEvents = cms.untracked.PSet(input = cms.untracked.int32(-1))
 
-readFiles = cms.untracked.vstring(
-                              'file:WTo3Pion_pythia8_PU200.batch3.job99.root'
+readFiles = cms.untracked.vstring( inputFiles
 #                                  '/store/relval/CMSSW_13_0_0/RelValTTbar_14TeV/GEN-SIM-DIGI-RAW/130X_mcRun4_realistic_v2_2026D95noPU-v1/00000/16f6615d-f98c-475f-ad33-0e89934b6c7f.root'
 )
 secFiles = cms.untracked.vstring()
@@ -66,7 +76,7 @@ process.Timing = cms.Service("Timing",
   useJobReport = cms.untracked.bool(False)
 )
 
-process.TFileService = cms.Service("TFileService", fileName = cms.string('GTTObjects_WTo3Pion_temp.root'), closeFileFast = cms.untracked.bool(True))
+process.TFileService = cms.Service("TFileService", fileName = cms.string('GTTObjects_temp.root'), closeFileFast = cms.untracked.bool(True))
 
 
 ############################################################
@@ -112,7 +122,7 @@ process.pPV = cms.Path(process.l1tVertexFinder)
 if runVtxNN:
     process.l1tVertexFinderEmulator = process.l1tVertexProducer.clone()
     process.l1tVertexFinderEmulator.VertexReconstruction.Algorithm = "NNEmulation"
-
+    # Note: these cuts don't actually change the selected tracks wrt the ones in the nominal l1tTrackSelectionProducer because of the extra comma ...
     process.l1tTrackSelectionProducer.cutSet = cms.PSet(ptMin = cms.double(2.0), # pt must be greater than this value, [GeV]
                                                         absEtaMax = cms.double(2.4), # absolute value of eta must be less than this value
                                                         absZ0Max = cms.double(15.0), # z0 must be less than this value, [cm]
@@ -134,7 +144,7 @@ else:
     process.l1tVertexFinderEmulator.VertexReconstruction.Algorithm = "fastHistoEmulation"
     VertexAssociator = process.l1tTrackVertexAssociationProducer
     AssociationName = "l1tTrackVertexAssociationProducer"
-    
+# TODO: use NN association emulation also for downstream quantities like l1tTrackVertexAssociationProducerForEtMiss. Currently, TrackMET emulation uses the NN emulated vertex but the nominal track-vertex association.
 process.pPVemu = cms.Path(process.l1tVertexFinderEmulator)
 
 # HYBRID: prompt tracking
@@ -305,36 +315,16 @@ variations_template = lambda SF: [
 
     ["", "PFA", False, SF, False, 2, 2],
     ["", "PFA", False, SF, False, 1, 2],
-    ["", "PFA", False, SF, False, 0, 2],
+    # ["", "PFA", False, SF, False, 0, 2],
     ["", "PFA", False, SF, False, 2, 1],
     ["", "PFA", False, SF, False, 1, 1],
-    ["", "PFA", False, SF, False, 0, 1],
+    # ["", "PFA", False, SF, False, 0, 1],
     ["", "PFA", False, SF, False, 2, 0],
     ["", "PFA", False, SF, False, 1, 0],
-    ["", "PFA", False, SF, False, 0, 0],
-
-    ["", "PFA", True, SF, True, 2, 2],
-    ["", "PFA", True, SF, True, 1, 2],
-    ["", "PFA", True, SF, True, 0, 2],
-    ["", "PFA", True, SF, True, 2, 1],
-    ["", "PFA", True, SF, True, 1, 1],
-    ["", "PFA", True, SF, True, 0, 1],
-    ["", "PFA", True, SF, True, 2, 0],
-    ["", "PFA", True, SF, True, 1, 0],
-    ["", "PFA", True, SF, True, 0, 0],
-
-    ["", "PFA", False, SF, True, 2, 2],
-    ["", "PFA", False, SF, True, 1, 2],
-    ["", "PFA", False, SF, True, 0, 2],
-    ["", "PFA", False, SF, True, 2, 1],
-    ["", "PFA", False, SF, True, 1, 1],
-    ["", "PFA", False, SF, True, 0, 1],
-    ["", "PFA", False, SF, True, 2, 0],
-    ["", "PFA", False, SF, True, 1, 0],
-    ["", "PFA", False, SF, True, 0, 0],
+    # ["", "PFA", False, SF, False, 0, 0],
     ]
 
-variations =  [ ["", "fastHisto", False, 0, False, 0, 0] ] + variations_template(0.71) + variations_template(1.0) + variations_template(1.41)
+variations =  [ ["", "fastHisto", False, 0, False, 0, 0] ] + variations_template(0.5) + variations_template(0.71) + variations_template(1.0) + variations_template(1.41)
 
 VertexAssociators = {}
 AssociationNames = {}
