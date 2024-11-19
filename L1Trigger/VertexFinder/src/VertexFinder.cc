@@ -836,7 +836,9 @@ namespace l1tVertexFinder {
         }
       }
       found.push_back(imax);
-      vertices_.emplace_back(sums.at(imax));
+      if (imax != -999) { // In case fewer than settings_->vx_nvtx() vertex candidates exist
+        vertices_.emplace_back(sums.at(imax));
+      }
     }
     pv_index_ = 0;
   }                 // end of PFA
